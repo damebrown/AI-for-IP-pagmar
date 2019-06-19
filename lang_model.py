@@ -6,7 +6,7 @@ from sklearn.manifold import TSNE
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from_keep = 'C:\\Users\\user\\PycharmProjects\\AIFIP_final\\songs_from_keep.txt'
+from_keep = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\songs_from_keep.txt'
 
 
 def build_model(sentences):
