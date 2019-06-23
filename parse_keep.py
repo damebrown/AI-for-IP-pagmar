@@ -11,9 +11,11 @@ import seaborn as sns
 
 NUMERIC_PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\numeric_data.csv'
 PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\data.csv'
-NOTEBOOK_PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\'
-YESHIVA_1 ='yeshiva_1.csv'
-YESHIVA_2 ='yeshiva_2.csv'
+PROCESSED_DATA_PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\data\\'
+NOTEBOOKS_PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\notebooks\\'
+YESHIVA_1 = 'yeshiva_1.csv'
+YESHIVA_2 = 'yeshiva_2.csv'
+YESHIVA_3 = 'yeshiva_3.csv'
 
 
 def update_keep(email, password):
@@ -160,9 +162,6 @@ def parse_notebooks(path):
     num_of_words, num_of_rows, num_of_houses, longest_row, shortest_row, classes = [], [], [], [], [], []
     titles, broken_2_words, poem_texts = [], [], []
     pd_poems = pd.read_csv(path, encoding = 'utf8')
-    # pd_poems = pd.read_csv(path)
-    poems = pd_poems.to_numpy()
-    poems[:, 0] = pd_poems.iloc[:, 0]
     for poem in pd_poems.iterrows():
         print(poem[1][0])
         poem_texts.append(poem[1][0])
@@ -194,8 +193,19 @@ def parse_notebooks(path):
         'text broken to words': broken_2_words
     }
     df = pd.DataFrame(data, columns = cols)
-    df.to_csv(NOTEBOOK_PATH + YESHIVA_2, encoding = 'utf-8-sig')
+    df.to_csv(PROCESSED_DATA_PATH + YESHIVA_3, encoding = 'utf-8-sig')
     return df
+
+
+def unite_textual_data():
+    arr = ['keep_data.csv', 'poems_18_19.csv', 'yeshiva_1.csv', 'yeshiva_2.csv', 'yeshiva_3.csv']
+    frames = []
+    for file in arr:
+        df = pd.read_csv(PROCESSED_DATA_PATH + file)
+        frames.append(df)
+    data = pd.concat(frames)
+    data.to_csv(PROCESSED_DATA_PATH + 'all_data.csv', encoding = 'utf-8-sig')
+    return data
 
 
 string_cols = [
@@ -206,8 +216,6 @@ numeric_cols = ['titles', 'hour', 'day', 'month', 'year', 'class', '# of words',
 cols = numeric_cols + string_cols
 filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X')
 
-# TODO- doc 2 vec
-# df = parse_keep()
 # df = pd.read_csv(NUMERIC_PATH, names = cols)
 # np_df = df.to_numpy()
 # np_df = np_df[1:, :-2].astype(int)
@@ -217,9 +225,21 @@ filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd
 # plt.xticks(np.arange(12, 78, step = 12))
 # plt.show()
 
-path_18_19 = "C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\notebooks\\poems_18_19.csv"
-path_yeshiva_1 = "C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\notebooks\\yeshive_poems_1.csv"
-path_yeshiva_2 = "C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\notebooks\\yeshive_2_and_more.csv"
-df = parse_notebooks(path_yeshiva_2)
-npdf = df.to_numpy()
-print(1)
+# TODO extract Doc2Vec vector for each poems in all data sets (all notebooks and textual data from keep
+# df = pd.read_csv(PROCESSED_DATA_PATH + 'all_data.csv', encoding = 'utf-8-sig')
+# numeric_data = df.drop(df.columns[0], axis=1)
+# # numeric_data = numeric_data.drop(['day'], axis=1)
+# numeric_data['row avg length'] = numeric_data['# of words'] / numeric_data['# of rows']
+# pd.plotting.scatter_matrix(numeric_data, alpha=0.2, figsize=(10, 10))
+# plt.show()
+# plt.matshow(numeric_data.corr())
+# plt.show()
+#
+# cnt_pro = df['class'].value_counts()
+# sns.barplot(cnt_pro.index, cnt_pro.values, alpha=0.8)
+# plt.ylabel('Number of Occurrences', fontsize=12)
+# plt.xlabel('Class', fontsize=12)
+# plt.xticks(rotation=90)
+# plt.show()
+# TODO remove all textual data
+# TODO unify all data sets
