@@ -14,30 +14,10 @@ string_cols = [
 numeric_cols = ['titles', 'hour', 'day', 'month', 'year', 'class', '# of words', '# of rows', '# of houses',
                 'longest row', 'shortest row']
 cols = numeric_cols + string_cols
+GREEN = 'green.csv'
 
 
 def simple_preprocess(doc, deacc = False, min_len = 2, max_len = 15):
-    """Convert a document into a list of lowercase tokens, ignoring tokens that are too short or too long.
-
-    Uses :func:`~gensim.utils.tokenize` internally.
-
-    Parameters
-    ----------
-    doc : str
-        Input document.
-    deacc : bool, optional
-        Remove accent marks from tokens using :func:`~gensim.utils.deaccent`?
-    min_len : int, optional
-        Minimum length of token (inclusive). Shorter tokens are discarded.
-    max_len : int, optional
-        Maximum length of token in result (inclusive). Longer tokens are discarded.
-
-    Returns
-    -------
-    list of str
-        Tokens extracted from `doc`.
-
-    """
     tokens = [
         # token for token in gensim.utils.tokenize(doc, lower = True, deacc = deacc, encoding = 'utf8', errors = 'ignore')
         gensim.utils.to_utf8(token) for token in
@@ -54,57 +34,62 @@ def read_corpus(data, label, tokens_only = False):
     for i, line in enumerate(np_docs):
         if i:
             spp = simple_preprocess(line)
-            # if tokens_only:
-            #     arr.append(spp)
-            # else:
-            #     # For training data, add tags
             arr.append(gensim.models.doc2vec.TaggedDocument(spp, [label + str(i)]))
     return arr
 
 
-def extract_vec(df, words, model):
+def extract_vec(df, model):
     df['doc2vec'] = ''
     count_row = df.shape[0]
     j = df.columns.get_loc('doc2vec')
     w = df.columns.get_loc('text broken to words')
+    words = df[df.columns[w]]
+    h = words.to_numpy()
     for i in range(count_row):
         word = words[i].strip('[]').replace(',', '').split()
         df.iat[i, w] = word
         df.iat[i, j] = model.infer_vector(word)
-        i += 1
-    df.to_csv(PROCESSED_DATA_PATH + 'all_data.csv', encoding = 'utf-8-sig')
+    df.to_csv(PROCESSED_DATA_PATH + 'green.csv', encoding = 'utf-8-sig')
+    return df
 
 
-df = pd.read_csv(PROCESSED_DATA_PATH + 'all_data.csv', names = cols)
-npdf = df.to_numpy()
-docs = df.iloc[:, 9]
-np_docs = docs.to_numpy()
-train, test = train_test_split(df, test_size = 0.2, random_state = 42)
-train_corpus = list(read_corpus(train, 'train'))
-test_corpus = list(read_corpus(test, 'test', tokens_only = True))
-all_data = test_corpus + train_corpus
-model = gensim.models.Doc2Vec.load('doc2vec_model.bin')
-model.build_vocab([x for x in tqdm(all_data)])
-model.train(all_data, total_examples = len(all_data), epochs = model.epochs)
-for epoch in range(30):
-    model.train(utils.shuffle([x for x in tqdm(all_data)]), total_examples = len(all_data), epochs = 1)
-    model.alpha -= 0.002
-    model.min_alpha = model.alpha
-ranks = []
-second_ranks = []
-for doc_id in range(len(train_corpus)):
-    inferred_vector = model.infer_vector(train_corpus[doc_id].words)
-    sims = model.docvecs.most_similar([inferred_vector], topn = len(model.docvecs))
-    rank = [docid for docid, sim in sims].index(doc_id)
-    ranks.append(rank)
+all_df = pd.read_csv(PROCESSED_DATA_PATH + 'all_data.csv', names = cols)
+green_df = pd.read_csv(PROCESSED_DATA_PATH + 'green.csv', names = cols)
+all_np = all_df.to_numpy()
+green_np = green_df.to_numpy()
+green_df = green_df.iloc[1:]
+model = gensim.models.Doc2Vec.load('doc2vec_model')
+green_df['avg line len'] = (green_df['# of words'].astype(int) / green_df['# of rows'].astype(int)).astype(float)
+print(green_df.columns)
+green_df = extract_vec(green_df, model)
+print(1)
+# extract_vec(green_df, green_df[green_df.columns[12]], model)
 
-    second_ranks.append(sims[1])
-    print(collections.Counter(ranks))
-
-    print('Document ({}): {}\n'.format(doc_id, ' '.join(train_corpus[doc_id].words)))
-    print(u'SIMILAR/DISSIMILAR DOCS PER MODEL %s:\n' % model)
-    for label, index in [('MOST', 0), ('SECOND-MOST', 1), ('MEDIAN', len(sims) // 2), ('LEAST', len(sims) - 1)]:
-        print(u'%s %s: %s\n' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
+# train, test = train_test_split(df, test_size = 0.2, random_state = 42)
+# train_corpus = list(read_corpus(train, 'train'))
+# test_corpus = list(read_corpus(test, 'test', tokens_only = True))
+# all_data = test_corpus + train_corpus
+# model.build_vocab([x for x in tqdm(all_data)])
+# model.train(all_data, total_examples = len(all_data), epochs = model.epochs)
+# for epoch in range(30):
+#     model.train(utils.shuffle([x for x in tqdm(all_data)]), total_examples = len(all_data), epochs = 1)
+#     model.alpha -= 0.002
+#     model.min_alpha = model.alpha
+# ranks = []
+# second_ranks = []
+# for doc_id in range(len(train_corpus)):
+#     inferred_vector = model.infer_vector(train_corpus[doc_id].words)
+#     sims = model.docvecs.most_similar([inferred_vector], topn = len(model.docvecs))
+#     rank = [docid for docid, sim in sims].index(doc_id)
+#     ranks.append(rank)
+#
+#     second_ranks.append(sims[1])
+#     print(collections.Counter(ranks))
+#
+#     print('Document ({}): {}\n'.format(doc_id, ' '.join(train_corpus[doc_id].words)))
+#     print(u'SIMILAR/DISSIMILAR DOCS PER MODEL %s:\n' % model)
+#     for label, index in [('MOST', 0), ('SECOND-MOST', 1), ('MEDIAN', len(sims) // 2), ('LEAST', len(sims) - 1)]:
+#         print(u'%s %s: %s\n' % (label, sims[index], ' '.join(train_corpus[sims[index][0]].words)))
 
 #
 # vocabulary = list(model.wv.vocab)

@@ -16,6 +16,7 @@ NOTEBOOKS_PATH = 'C:\\Users\\user\\PycharmProjects\\AIFIP_pagmar\\notebooks\\'
 YESHIVA_1 = 'yeshiva_1.csv'
 YESHIVA_2 = 'yeshiva_2.csv'
 YESHIVA_3 = 'yeshiva_3.csv'
+GREEN = 'green.csv'
 
 
 def update_keep(email, password):
@@ -162,7 +163,9 @@ def parse_notebooks(path):
     num_of_words, num_of_rows, num_of_houses, longest_row, shortest_row, classes = [], [], [], [], [], []
     titles, broken_2_words, poem_texts = [], [], []
     pd_poems = pd.read_csv(path, encoding = 'utf8')
+    np_poems = pd_poems.to_numpy()
     for poem in pd_poems.iterrows():
+        print("\n")
         print(poem[1][0])
         poem_texts.append(poem[1][0])
         month = poem[1][1]
@@ -172,6 +175,7 @@ def parse_notebooks(path):
         months.append(month)
         years.append(year)
         titles.append(poem[1][3])
+        print(len(titles))
         classes.append((year - 13) * 12 + month)
         # n_rows, n_words, n_houses, longest_row_length, shortest_row_length, broken_poem
         a, b, c, d, e, f = count_enters(poem[1][0])
@@ -193,12 +197,13 @@ def parse_notebooks(path):
         'text broken to words': broken_2_words
     }
     df = pd.DataFrame(data, columns = cols)
-    df.to_csv(PROCESSED_DATA_PATH + YESHIVA_3, encoding = 'utf-8-sig')
+    df.to_csv(PROCESSED_DATA_PATH + GREEN, encoding = 'utf-8-sig')
+    np_poems = df.to_numpy()
     return df
 
 
 def unite_textual_data():
-    arr = ['keep_data.csv', 'poems_18_19.csv', 'yeshiva_1.csv', 'yeshiva_2.csv', 'yeshiva_3.csv']
+    arr = ['keep_data.csv', 'poems_18_19.csv', 'yeshiva_1.csv', 'yeshiva_2.csv', 'yeshiva_3.csv', GREEN]
     frames = []
     for file in arr:
         df = pd.read_csv(PROCESSED_DATA_PATH + file)
@@ -215,7 +220,9 @@ numeric_cols = ['titles', 'hour', 'day', 'month', 'year', 'class', '# of words',
                 'longest row', 'shortest row']
 cols = numeric_cols + string_cols
 filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X')
-
+df = parse_notebooks(NOTEBOOKS_PATH + GREEN)
+npdf = df.to_numpy()
+print(1)
 # df = pd.read_csv(NUMERIC_PATH, names = cols)
 # np_df = df.to_numpy()
 # np_df = np_df[1:, :-2].astype(int)
