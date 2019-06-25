@@ -31,6 +31,7 @@ cols = numeric_cols + string_cols
 def parse_data(all_df):
     npdf = all_df.to_numpy()
     df = all_df.drop(all_df.index[0])
+    npdf = df.to_numpy()
     vectors = df[df.columns[12]]
     vectors = vectors.to_numpy()
     df = df.drop(df.columns[12], axis = 1)
@@ -50,7 +51,7 @@ def parse_data(all_df):
         col = length + i
         df[df.columns[col]] = arr[:, i]
         npdf = df.to_numpy()
-    df = normalize(df)
+    # df = normalize(df)
     class_tag = df[df.columns[5]].astype(int)
     year_tag = df[df.columns[4]].astype(int)
     month_tag = df[df.columns[3]].astype(float)
@@ -100,93 +101,129 @@ def normalize(df):
 
 
 def get_united_data():
-    all_df = pd.read_csv(PROCESSED_DATA_PATH + 'all_data.csv', names = cols)
-    green_df = pd.read_csv(PROCESSED_DATA_PATH + 'green.csv', names = cols)
+    all_df = pd.read_csv(PROCESSED_DATA_PATH + 'all_data.csv', names = cols, encoding = 'utf-8')
+    green_df = pd.read_csv(PROCESSED_DATA_PATH + 'green.csv', names = cols, encoding = 'utf-8')
     df = all_df.append(green_df)
+    npdf = df.to_numpy()
     return df
 
 
-# df = get_united_data()
-# df.to_csv(PROCESSED_DATA_PATH + 'united_data.csv')
-# npdf = df.to_numpy()
-# drop_cols = [11, 12]
-# df = df.drop(df.columns[drop_cols], axis = 1)
-# before_npdf = df.to_numpy()
-# text, words = df['Text'], df['text broken to words']
-# text.to_csv(PROCESSED_DATA_PATH + 'text.csv')
-# words.to_csv(PROCESSED_DATA_PATH + 'broken_to_words.csv')
-
-# class_y, year_y, month_y, df = parse_data(df)
-#
-# after_npdf = df.to_numpy()
-# np_year = year_y.to_numpy()
-# np_month = month_y.to_numpy()
-#
-# df.to_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
-# month_y.to_csv(PROCESSED_DATA_PATH + 'month_y.csv')
-# year_y.to_csv(PROCESSED_DATA_PATH + 'year_y.csv')
-# class_y.to_csv(PROCESSED_DATA_PATH + 'class_y.csv')
-#
-# df = pd.read_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
-# month_y = pd.read_csv(PROCESSED_DATA_PATH + 'month_y.csv')
-# year_y = pd.read_csv(PROCESSED_DATA_PATH + 'year_y.csv')
-# class_y = pd.read_csv(PROCESSED_DATA_PATH + 'class_y.csv')
-# random_state = 170
+stav_i = 337
+island_i = 442
+over_i = 430
 
 
-# class_y = np.floor(class_y / 3)
-# month_y = np.floor(month_y / 3)
-# npy = class_y.to_numpy()
-# npdf = df.to_numpy()
-# labels = [year_y, month_y]
-# strings = ["year", "month"]
+def update_date():
+    df = get_united_data()
+    df.to_csv(PROCESSED_DATA_PATH + 'united_data.csv', encoding = 'utf-8')
+    bef_over = df.ix[over_i]
+    bef_stav = df.ix[stav_i]
+    bef_island = df.ix[island_i]
+    text, words = df['Text'], df['text broken to words']
+    npw, npt = words.to_numpy(), text.to_numpy()
+    text.to_csv(PROCESSED_DATA_PATH + 'text.csv', encoding = 'utf-8')
+    words.to_csv(PROCESSED_DATA_PATH + 'broken_to_words.csv', encoding = 'utf-8')
 
-# for i, label in enumerate(labels):
-#     print("========================" + strings[i] + "=======================")
-#     test_size = 0.02
-#     while test_size < 0.07:
-#         print("~~~~~~~~~~~~TEST SIZE IS " + str(test_size))
-#         X_train, X_test, y_train, y_test = train_test_split(df, label, test_size = test_size, random_state = None)
-#         npX_train, npX_test, npy_train, npy_test = X_train.to_numpy(), X_test.to_numpy(), y_train.to_numpy(), y_test.to_numpy()
-#
-#         models = {
-#             "forest": RandomForestClassifier(n_estimators = 100, max_depth = None, random_state = 0),
-#             "tree": DecisionTreeClassifier(max_depth = 3, random_state = 0),
-#             "svc": SVC(gamma = 'auto'),
-#             "bagging": BaggingClassifier(n_estimators = 100, random_state = 0),
-#             "extraTree": ExtraTreesClassifier(n_estimators = 100, random_state = 0),
-#             "Naive Bayes": GaussianNB(),
-#             "Logistic Reg": LogisticRegression(),
-#             "LDA": LinearDiscriminantAnalysis(),
-#         }
-#         scores = dict()
-#         maximum, maximum_boost, max_name, max_boost_name = 0, 0, " ", " "
-#         for name, model in models.items():
-#             success = []
-#             for i in range(10, 101, 20):
-#                 model.fit(X_train, y_train)
-#                 score = model.score(X_test, y_test)
-#                 success.append(score)
-#             avg = sum(success) / len(success)
-#             if avg > maximum:
-#                 maximum = avg
-#                 max_name = name
-#         print("best success rate = " + str(maximum) + "%, by " + max_name)
-#         for name, model in models.items():
-#             success = []
-#             if name != "LDA" and name != "Linear Reg":
-#                 for i in range(10, 101, 20):
-#                     booster = AdaBoostClassifier(base_estimator = model, n_estimators = i, learning_rate = 1,
-#                                                  algorithm = 'SAMME')
-#                     booster.fit(X_train, y_train)
-#                     score = booster.score(X_test, y_test)
-#                     success.append(score)
-#                 avg = sum(success) / len(success)
-#                 if avg > maximum_boost:
-#                     maximum_boost = avg
-#                     max_boost_name = name
-#         print("\tboosting best success rate = " + str(maximum_boost) + "%, by " + max_boost_name)
-#         test_size += 0.01
+    drop_cols = [11, 12]
+    df = df.drop(df.columns[drop_cols], axis = 1)
+
+    before_npdf = df.to_numpy()
+    class_y, year_y, month_y, df = parse_data(df)
+    after_npdf = df.to_numpy()
+    i = 1
+    over = df.ix[over_i].to_numpy()
+    stav = df.ix[stav_i].to_numpy()
+    island = df.ix[island_i].to_numpy()
+
+    df.to_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
+    month_y.to_csv(PROCESSED_DATA_PATH + 'month_y.csv')
+    year_y.to_csv(PROCESSED_DATA_PATH + 'year_y.csv')
+    class_y.to_csv(PROCESSED_DATA_PATH + 'class_y.csv')
+
+
+# update_date()
+
+
+# over vec - [0.007988396, -0.0023993275, 0.00800412, -0.0066335755, -0.007904669, -0.0015743646, -0.007595128, -0.0033890593, 0.003196409, -0.0019544312, -0.00097329874, -0.00435904, -0.009632293, 0.0057177627, 0.008882485, 0.0013818772, 0.0052690175, 0.002810595, 0.003344872, -0.002224755, -0.0001887379, 0.0061608227, 0.0021522208, 0.0064588804, -0.008283174, -0.005177438, -0.008682486, 0.007993151, -0.002916733, 0.009908975, 0.005105828, -0.0046413033, -0.00012251954, -0.0055439207, -0.002575222, 0.0027346294, 0.0060660033, 0.00205623, 0.003981637, 0.005966439, 0.0055901175, -0.0051452606, 0.003748228, -0.0057704286, -0.006901037, -0.00769887, -0.008945171, 0.0027005144, 0.0008984389, 0.0014454011]
+# stav vec - [-0.0068391706, -0.005681167, -0.009038468, 0.00910168, -0.00016505031, -0.0012005187, 0.00080364256, 0.009025685, -0.0026358727, 0.0027261232, 0.009746294, 0.009564702, -0.008655022, 0.009399588, -0.008975932, 0.0022090261, 0.0062317546, -0.0047223303, 0.0086170025, 0.009468829, -0.008662651, 0.0059430106, 0.007601593, 0.004608115, 0.0017014629, -0.0062839612, -0.009051464, 0.00015771069, -0.0030871236, 0.0035446761, -0.008370033, -0.009112978, 0.003570738, 0.0050718863, -0.004068378, 0.0049796156, 0.0009591962, -0.00010372355, -0.0017166928, 0.0008478257, -0.0052420488, -0.0026470756, -0.009507462, 0.003130111, 0.005580592, 0.008663745, -0.00042863062, -0.008611282, -0.0041785752, 0.007159827]
+# island vec - [0.0015233718, -0.009798396, 0.009615593, 0.007321318, 0.004274517, 0.0064548976, 0.006853671, 0.006264514, -0.0026331695, 0.0047941054, -0.0009523215, 0.00733839, 0.00918129, -0.0021996268, -0.008943227, 0.00074310193, 0.0032062018, 0.0062021036, -0.003032238, -0.006932567, 0.0020346174, 0.0036557398, 0.0009945445, -0.009221129, 0.007376254, 0.009272751, 0.0032240122, 0.008493876, -0.0039889147, -0.007638705, 0.00369468, -0.008053329, -0.0063413195, 0.00921621, -0.009537674, 0.0047548055, -0.00047301894, 0.0038855143, -0.0050775935, 0.0053776978, -0.0066949846, -0.00064271747, 0.008087037, -0.006285301, -0.0057319887, -0.0056550056, -0.002966521, -0.0015645059, 0.0018456265, 0.004098773]
+
+def get_data():
+    df = pd.read_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
+    month_y = pd.read_csv(PROCESSED_DATA_PATH + 'month_y.csv')
+    year_y = pd.read_csv(PROCESSED_DATA_PATH + 'year_y.csv')
+    i = 1
+    over = df.ix[over_i - i]
+    stav = df.ix[stav_i - i]
+    island = df.ix[island_i - i]
+
+    after_npdf = df.to_numpy()
+    np_year = year_y.to_numpy()
+    np_month = month_y.to_numpy()
+
+    indices = [stav_i - i, over_i - i, island_i - i]
+    df = df.drop(df.index[indices])
+    year_y = year_y.drop(df.index[indices])
+    month_y = month_y.drop(df.index[indices])
+
+    return df, year_y, month_y, over, stav, island
+
+
+def get_model(tag):
+    a, b, c, over, stav, island = get_data()
+    dic = {"ISLAND": island, "STAV": stav, "OVER": over}
+    y = dic[tag]
+    random_state = 170
+    df, year_y, month_y = get_data()
+    labels = [year_y, month_y]
+    strings = ["year", "month"]
+    for i, label in enumerate(labels):
+        print("========================" + strings[i] + "=======================")
+        test_size = 0.02
+        while test_size < 0.07:
+            print("~~~~~~~~~~~~TEST SIZE IS " + str(test_size))
+            X_train, X_test, y_train, y_test = train_test_split(df, label, test_size = test_size, random_state = None)
+            npX_train, npX_test, npy_train, npy_test = X_train.to_numpy(), X_test.to_numpy(), y_train.to_numpy(), y_test.to_numpy()
+
+            models = {
+                "forest": RandomForestClassifier(n_estimators = 100, max_depth = None, random_state = 0),
+                "tree": DecisionTreeClassifier(max_depth = 3, random_state = 0),
+                "svc": SVC(gamma = 'auto'),
+                "bagging": BaggingClassifier(n_estimators = 100, random_state = 0),
+                "extraTree": ExtraTreesClassifier(n_estimators = 100, random_state = 0),
+                "Naive Bayes": GaussianNB(),
+                "Logistic Reg": LogisticRegression(),
+                "LDA": LinearDiscriminantAnalysis(),
+            }
+            scores = dict()
+            maximum, maximum_boost, max_name, max_boost_name = 0, 0, " ", " "
+            for name, model in models.items():
+                success = []
+                for i in range(10, 101, 20):
+                    model.fit(X_train, y_train)
+                    score = model.score(X_test, y_test)
+                    success.append(score)
+                avg = sum(success) / len(success)
+                if avg > maximum:
+                    maximum = avg
+                    max_name = name
+            print("best success rate = " + str(maximum) + "%, by " + max_name)
+            for name, model in models.items():
+                success = []
+                if name != "LDA" and name != "Linear Reg":
+                    for i in range(10, 101, 20):
+                        booster = AdaBoostClassifier(base_estimator = model, n_estimators = i, learning_rate = 1,
+                                                     algorithm = 'SAMME')
+                        booster.fit(X_train, y_train)
+                        score = booster.score(X_test, y_test)
+                        success.append(score)
+                    avg = sum(success) / len(success)
+                    if avg > maximum_boost:
+                        maximum_boost = avg
+                        max_boost_name = name
+            print("\tboosting best success rate = " + str(maximum_boost) + "%, by " + max_boost_name)
+            test_size += 0.01
+
 
 def simple_preprocess(doc, deacc = False, min_len = 2, max_len = 15):
     tokens = [
@@ -329,8 +366,11 @@ def init_data():
 def when(poem):
     if poem == "ISLAND":
         print("POEM IS: " + poem)
+        get_model("ISLAND")
     elif poem == "OVER":
         print("POEM IS: " + poem)
+        get_model("OVER")
     elif poem == "STAV":
         print("POEM IS: " + poem)
+        get_model("STAV")
     return 0
