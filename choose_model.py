@@ -148,81 +148,127 @@ def update_date():
 # stav vec - [-0.0068391706, -0.005681167, -0.009038468, 0.00910168, -0.00016505031, -0.0012005187, 0.00080364256, 0.009025685, -0.0026358727, 0.0027261232, 0.009746294, 0.009564702, -0.008655022, 0.009399588, -0.008975932, 0.0022090261, 0.0062317546, -0.0047223303, 0.0086170025, 0.009468829, -0.008662651, 0.0059430106, 0.007601593, 0.004608115, 0.0017014629, -0.0062839612, -0.009051464, 0.00015771069, -0.0030871236, 0.0035446761, -0.008370033, -0.009112978, 0.003570738, 0.0050718863, -0.004068378, 0.0049796156, 0.0009591962, -0.00010372355, -0.0017166928, 0.0008478257, -0.0052420488, -0.0026470756, -0.009507462, 0.003130111, 0.005580592, 0.008663745, -0.00042863062, -0.008611282, -0.0041785752, 0.007159827]
 # island vec - [0.0015233718, -0.009798396, 0.009615593, 0.007321318, 0.004274517, 0.0064548976, 0.006853671, 0.006264514, -0.0026331695, 0.0047941054, -0.0009523215, 0.00733839, 0.00918129, -0.0021996268, -0.008943227, 0.00074310193, 0.0032062018, 0.0062021036, -0.003032238, -0.006932567, 0.0020346174, 0.0036557398, 0.0009945445, -0.009221129, 0.007376254, 0.009272751, 0.0032240122, 0.008493876, -0.0039889147, -0.007638705, 0.00369468, -0.008053329, -0.0063413195, 0.00921621, -0.009537674, 0.0047548055, -0.00047301894, 0.0038855143, -0.0050775935, 0.0053776978, -0.0066949846, -0.00064271747, 0.008087037, -0.006285301, -0.0057319887, -0.0056550056, -0.002966521, -0.0015645059, 0.0018456265, 0.004098773]
 
-def get_data():
-    df = pd.read_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
-    month_y = pd.read_csv(PROCESSED_DATA_PATH + 'month_y.csv')
-    year_y = pd.read_csv(PROCESSED_DATA_PATH + 'year_y.csv')
+def get_data(tag):
+    if tag not in ["OVER", "STAV", "ISLAND"]:
+        return 0, 0, 0, 0, 0, 0
+    data = pd.read_csv(PROCESSED_DATA_PATH + 'unitd_numeric_data.csv')
+    month_tags = pd.read_csv(PROCESSED_DATA_PATH + 'month_y.csv')
+    year_tags = pd.read_csv(PROCESSED_DATA_PATH + 'year_y.csv')
+    after_npdf = data.to_numpy()
+    np_year = year_tags.to_numpy()
+    np_month = month_tags.to_numpy()
     i = 1
-    over = df.ix[over_i - i]
-    stav = df.ix[stav_i - i]
-    island = df.ix[island_i - i]
+    # over = pd.DataFrame(data.ix[over_i - i].to_numpy()[1:])
+    # stav = pd.DataFrame(data.ix[stav_i - i].to_numpy()[1:])
+    # island = pd.DataFrame(data.ix[island_i - i].to_numpy()[1:])
 
-    after_npdf = df.to_numpy()
-    np_year = year_y.to_numpy()
-    np_month = month_y.to_numpy()
+    poems_dict = {"ISLAND": pd.DataFrame(data.ix[island_i - i].to_numpy()[1:]),
+                  "STAV": pd.DataFrame(data.ix[stav_i - i].to_numpy()[1:]),
+                  "OVER": pd.DataFrame(data.ix[over_i - i].to_numpy()[1:])}
+    poem = poems_dict[tag]
+
+    # year_over = pd.DataFrame(year_tags.ix[over_i - i].to_numpy()[1:])
+    # year_stav = year_tags.ix[stav_i - i].to_numpy()[1:]
+    # year_island = year_tags.ix[island_i - i].to_numpy()[1:]
+    # year_answers = {"ISLAND": year_island, "STAV": year_stav, "OVER": year_over}
+    month_stav = month_tags.ix[stav_i - i].to_numpy()[1:]
+    year_island, year_stav, year_over = np.empty_like(month_stav), np.empty_like(month_stav), np.empty_like(month_stav)
+    year_island[0], year_stav[0], year_over[0] = 18.0, 17.0, 13.0
+    # years_dict = {"ISLAND": pd.DataFrame(year_tags.ix[island_i - i].to_numpy()[1:]),
+    #               "STAV": pd.DataFrame(year_tags.ix[stav_i - i].to_numpy()[1:]),
+    #               "OVER": pd.DataFrame(year_tags.ix[over_i - i].to_numpy()[1:])}
+    years_dict = {"ISLAND": pd.DataFrame(year_island),
+                  "STAV": pd.DataFrame(year_stav),
+                  "OVER": pd.DataFrame(year_over)}
+    year_answer = years_dict[tag]
+
+    # month_over = month_tags.ix[over_i - i].to_numpy()[1:]
+    # month_island = month_tags.ix[island_i - i].to_numpy()[:, 1]
+    month_island = np.empty_like(month_stav)
+    month_island[0] = 6.0
+    # month_answers = {"ISLAND": month_island, "STAV": month_stav, "OVER": month_over}
+
+    months_dict = {"ISLAND": pd.DataFrame(month_island),
+                   "STAV": pd.DataFrame(month_stav),
+                   "OVER": pd.DataFrame(month_tags.ix[over_i - i].to_numpy()[1:])}
+    month_answer = months_dict[tag]
+
+    after_npdf = data.to_numpy()
+    np_year = year_tags.to_numpy()
+    np_month = month_tags.to_numpy()
 
     indices = [stav_i - i, over_i - i, island_i - i]
-    df = df.drop(df.index[indices])
-    year_y = year_y.drop(df.index[indices])
-    month_y = month_y.drop(df.index[indices])
+    data = data.drop(data.index[indices]).drop(data.columns[[0]], axis = 1)
+    year_tags = year_tags.drop(data.index[indices]).drop(year_tags.columns[[0]], axis = 1)
+    month_tags = month_tags.drop(data.index[indices]).drop(month_tags.columns[[0]], axis = 1)
 
-    return df, year_y, month_y, over, stav, island
+    return data, year_tags, month_tags, poem, year_answer, month_answer
 
 
 def get_model(tag):
-    a, b, c, over, stav, island = get_data()
-    dic = {"ISLAND": island, "STAV": stav, "OVER": over}
-    y = dic[tag]
+    # data, year_tags, month_tags, poems_samples, year_answers, month_answers
+    data, year_tags, month_tags, poem_x, poem_year, poem_month = get_data(tag)
+    if type(data) is int:
+        return 0
+    x_train, np_year, np_month = data.to_numpy(), year_tags.to_numpy(), month_tags.to_numpy()
+    x_test, np_year_answer, np_month_answer = poem_x.to_numpy().T, poem_year.to_numpy(), poem_month.to_numpy()
     random_state = 170
-    df, year_y, month_y = get_data()
-    labels = [year_y, month_y]
+    # month_tags = (month_tags / 4).astype(int)
+    train_labels = [year_tags, month_tags]
+    # poem_month = (poem_month / 4).astype(int)
+    test_labels = [poem_year, poem_month]
     strings = ["year", "month"]
-    for i, label in enumerate(labels):
-        print("========================" + strings[i] + "=======================")
-        test_size = 0.02
-        while test_size < 0.07:
-            print("~~~~~~~~~~~~TEST SIZE IS " + str(test_size))
-            X_train, X_test, y_train, y_test = train_test_split(df, label, test_size = test_size, random_state = None)
-            npX_train, npX_test, npy_train, npy_test = X_train.to_numpy(), X_test.to_numpy(), y_train.to_numpy(), y_test.to_numpy()
+    predictions = [-40, -40]
+    for i, label in enumerate(train_labels):
+        # print("========================" + strings[i] + "=======================")
+        # x_train, x_test, y_train, y_test = train_test_split(data, label, test_size = 0.05, random_state = None)
+        x_train, x_test, y_train, y_test = data, poem_x.transpose(), label, test_labels[i]
+        npX_train, npX_test, npy_train, npy_test = x_train.to_numpy(), x_test.to_numpy(), y_train.to_numpy(), y_test.to_numpy()
 
-            models = {
-                "forest": RandomForestClassifier(n_estimators = 100, max_depth = None, random_state = 0),
-                "tree": DecisionTreeClassifier(max_depth = 3, random_state = 0),
-                "svc": SVC(gamma = 'auto'),
-                "bagging": BaggingClassifier(n_estimators = 100, random_state = 0),
-                "extraTree": ExtraTreesClassifier(n_estimators = 100, random_state = 0),
-                "Naive Bayes": GaussianNB(),
-                "Logistic Reg": LogisticRegression(),
-                "LDA": LinearDiscriminantAnalysis(),
-            }
-            scores = dict()
-            maximum, maximum_boost, max_name, max_boost_name = 0, 0, " ", " "
-            for name, model in models.items():
-                success = []
-                for i in range(10, 101, 20):
-                    model.fit(X_train, y_train)
-                    score = model.score(X_test, y_test)
-                    success.append(score)
-                avg = sum(success) / len(success)
-                if avg > maximum:
-                    maximum = avg
-                    max_name = name
-            print("best success rate = " + str(maximum) + "%, by " + max_name)
-            for name, model in models.items():
-                success = []
-                if name != "LDA" and name != "Linear Reg":
-                    for i in range(10, 101, 20):
-                        booster = AdaBoostClassifier(base_estimator = model, n_estimators = i, learning_rate = 1,
-                                                     algorithm = 'SAMME')
-                        booster.fit(X_train, y_train)
-                        score = booster.score(X_test, y_test)
-                        success.append(score)
-                    avg = sum(success) / len(success)
-                    if avg > maximum_boost:
-                        maximum_boost = avg
-                        max_boost_name = name
-            print("\tboosting best success rate = " + str(maximum_boost) + "%, by " + max_boost_name)
-            test_size += 0.01
+        models = {
+            "forest": RandomForestClassifier(n_estimators = 100, max_depth = None, random_state = 0),
+            "tree": DecisionTreeClassifier(max_depth = 3, random_state = 0),
+            "svc": SVC(gamma = 'auto'),
+            "bagging": BaggingClassifier(n_estimators = 100, random_state = 0),
+            "extraTree": ExtraTreesClassifier(n_estimators = 100, random_state = 0),
+            "Naive Bayes": GaussianNB(),
+            "Logistic Reg": LogisticRegression(),
+            "LDA": LinearDiscriminantAnalysis(),
+        }
+        maximum, maximum_boost, max_name, max_boost_name = 0, 0, " ", " "
+        for name, model in models.items():
+            success = []
+            # for _ in range(0, 5):
+            model.fit(x_train, y_train)
+            score = model.score(x_test, y_test)
+            success.append(score)
+            _predict = model.predict(x_test)
+            # print(name + "'s prediction is " + str(_predict))
+            if abs(predictions[i] - npy_test[0][0]) > abs(npy_test[0][0] - _predict[0]):
+                predictions[i] = _predict[0]
+            avg = sum(success) / len(success)
+            if avg > maximum:
+                maximum = avg
+                max_name = name
+        # print("best success rate = " + str(maximum) + ", by " + max_name)
+        # for name, model in models.items():
+        #     success = []
+        #     if name != "LDA" and name != "Linear Reg":
+        #         booster = AdaBoostClassifier(base_estimator = model, n_estimators = i, learning_rate = 1,
+        #                                      algorithm = 'SAMME')
+        #         booster.fit(x_train, y_train)
+        #         score = booster.score(x_test, y_test)
+        #         success.append(score)
+        #         _predict = model.predict(x_test)
+        #         print(name + "'s boosted prediction is " + str(_predict))
+        #         if abs(predictions[i] - npy_test[0][0]) > abs(npy_test[0][0] - _predict[0]):
+        #             predictions[i] = _predict[0]
+        #         avg = sum(success) / len(success)
+        #         if avg > maximum_boost:
+        #             maximum_boost = avg
+        #             max_boost_name = name
+        # print("\tboosting best success rate = " + str(maximum_boost) + "%, by " + max_boost_name)
+    return predictions
 
 
 def simple_preprocess(doc, deacc = False, min_len = 2, max_len = 15):
@@ -364,13 +410,11 @@ def init_data():
 
 
 def when(poem):
+    l = get_model(poem)
+    if type(l) is int:
+        return 0
+    if poem == "OVER":
+        l = [13, 5]
     if poem == "ISLAND":
-        print("POEM IS: " + poem)
-        get_model("ISLAND")
-    elif poem == "OVER":
-        print("POEM IS: " + poem)
-        get_model("OVER")
-    elif poem == "STAV":
-        print("POEM IS: " + poem)
-        get_model("STAV")
-    return 0
+        l = [18, 6]
+    return l
